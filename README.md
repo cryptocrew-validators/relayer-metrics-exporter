@@ -1,0 +1,2 @@
+## Relayer Metrics Exporter
+Relayer Metrics Exporter is a simple Node.js application that listens for new blocks on a Cosmos SDK-based blockchain and parses transactions and messages in real-time. It uses CosmJS types to decode the transactions and messages, and is particularly focused on handling Inter-Blockchain Communication (IBC) messages.
