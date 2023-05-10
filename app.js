@@ -115,6 +115,12 @@ async function savePacket(msg) {
 
 // Function to handle new blocks
 async function handleNewBlock(chain, height) {
+  // Prune packets older than 1 hour
+  const pruneQuery = `
+    DELETE FROM packets WHERE datetime(created_at) < datetime('now', '-1 hour')
+  `;
+  await db.run(pruneQuery);
+  
   try {
     const res = await axios.get(`${chain.rpcUrl}/block?height=${height}`);
     const block = res.data.result.block;
