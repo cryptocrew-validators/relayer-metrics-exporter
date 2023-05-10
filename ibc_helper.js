@@ -32,19 +32,23 @@ const {
   MsgRegisterPayee
 } = require('cosmjs-types/ibc/applications/fee/v1/tx.js');
 
-function deserializeMessage(msg) {
-  msg.result = `Handled message type: ${msg.typeUrl}`;
+function decodeMessage(msg) {
+  msg.result = `Decoded message type: ${msg.typeUrl}`;
+  msg.relevant = false;
   switch (msg.typeUrl) {
 
     // Channel messages
     case '/ibc.core.channel.v1.MsgRecvPacket':
       msg.value = MsgRecvPacket.decode(msg.value);
+      msg.relevant = true;
       break;
     case '/ibc.core.channel.v1.MsgAcknowledgement':
       msg.value = MsgAcknowledgement.decode(msg.value);
+      msg.relevant = true;
       break;
     case '/ibc.core.channel.v1.MsgTimeout':
       msg.value = MsgTimeout.decode(msg.value);
+      msg.relevant = true;
       break;
     case '/ibc.core.channel.v1.MsgChannelOpenTry':
       msg.value = MsgChannelOpenTry.decode(msg.value);
@@ -116,11 +120,11 @@ function deserializeMessage(msg) {
       break;
 
     default:
-      msg.result = `Unhandled message type: ${msg.typeUrl}`;
+      msg.result = `Undecoded message type: ${msg.typeUrl}`;
   }
   return msg;
 }
 
 module.exports = {
-  deserializeMessage
+  decodeMessage
 }
