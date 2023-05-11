@@ -24,6 +24,12 @@ const uneffectedPackets = new prometheus.Gauge({
   labelNames: ['chain_id', 'src_channel', 'src_port', 'dst_channel', 'dst_port', 'signer'],
 });
 
+const frontRunCounter = new prometheus.Gauge({
+  name: 'ibc_frontrun_counter',
+  help: 'Counts the number of times a signer gets frontrun by the same original signer',
+  labelNames: ['chain_id', 'src_channel', 'src_port', 'dst_channel', 'dst_port', 'signer', 'frontrunned_by'],
+});
+
 // Save new packet and check if it already has been handled
 async function savePacket(msg) {
   const packetParams = [
@@ -44,6 +50,8 @@ async function savePacket(msg) {
   `;
 
   const existingPacket = await db.get(query, packetParams);
+  const originalSigner = existingPacket ? existingPacket.signer : msg.value.signer;
+
   if (!existingPacket || !existingPacket.signer_id) {
     msg.effected = true;
     effectedPackets.labels(
@@ -64,6 +72,15 @@ async function savePacket(msg) {
       msg.value.packet.destinationChannel,
       msg.value.packet.destinationPort,
       msg.value.signer
+    ).inc();
+    frontRunCounter.labels(
+      msg.chainId,
+      msg.value.packet.sourceChannel,
+      msg.value.packet.sourcePort,
+      msg.value.packet.destinationChannel,
+      msg.value.packet.destinationPort,
+      msg.value.signer,
+      originalSigner
     ).inc();
   }
 
@@ -120,7 +137,7 @@ async function handleNewBlock(chain, height) {
     DELETE FROM packets WHERE datetime(created_at) < datetime('now', '-1 hour')
   `;
   await db.run(pruneQuery);
-  
+
   try {
     const res = await axios.get(`${chain.rpcUrl}/block?height=${height}`);
     const block = res.data.result.block;
@@ -152,7 +169,7 @@ async function handleNewBlock(chain, height) {
                   const msgTypeUrl = msg.typeUrl;
                   const effected = msg.effected;
 
-                  console.log(`${msg.chainId} | ${sourcePort}/${sourceChannel}: ${msgTypeUrl} (${sequence}) | (${signer}) | ${effected}${effected ? '' : ' | ' + msg.effectedSigner}`);
+                  console.log(`${msg.chainId} | ${sourcePort}/${sourceChannel}: ${msgTypeUrl} (${sequence}) | ${signer} | ${effected}${effected ? '' : ' | ' + msg.effectedSigner}`);
                 } catch (error) {
                   console.error(error);
                 }
@@ -190,7 +207,8 @@ function startBlockListener(chain) {
     const parsedData = JSON.parse(data);
     if (parsedData.result && parsedData.result.data && parsedData.result.data.value && parsedData.result.data.value.block) {
       const blockHeight = parsedData.result.data.value.block.header.height;
-      console.log(`New block received: ${blockHeight}`);
+      const chainId = parsedData.result.data.value.block.header.chain_id;
+      console.log(`${chainId}: ${blockHeight}`);
       await handleNewBlock(chain, blockHeight);
     }
   });
