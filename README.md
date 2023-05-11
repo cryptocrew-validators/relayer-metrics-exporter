@@ -20,7 +20,7 @@ Relayer Metrics Exporter is a tool designed to monitor and analyze IBC relayer a
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/relayer-metrics-exporter.git
+git clone https://github.com/clemensgg/relayer-metrics-exporter
 npm install
 ```
 
