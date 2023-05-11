@@ -1,5 +1,5 @@
 
-Relayer Metrics Exporter is a tool designed to monitor and analyze IBC relayer activity and performance. It connects to one or multiple Cosmos-SDK based network, listens for new blocks, and captures relevant IBC messages to provide insights into relayer performance.
+Relayer Metrics Exporter is a tool designed to monitor and analyze IBC relayer activity and performance. It connects to one or multiple Cosmos-SDK based chains, listens for new blocks, and captures relevant IBC messages to provide insights into relayer performance.
 
 ## Features
 
@@ -13,7 +13,7 @@ Relayer Metrics Exporter is a tool designed to monitor and analyze IBC relayer a
 
 - Node.js (v12 or above)
 - npm (Node Package Manager)
-- WebSocket connection to a blockchain network
+- RPC connection
 
 ## Installation
 
@@ -42,6 +42,6 @@ Metrics will be exposed on `localhost:3000/metrics` per default.
 
 ## Metrics Exposed
 
-ibc_effected_packets{chain_id, src_channel, src_port, dst_channel, dst_port, signer}
-ibc_uneffected_packets{chain_id, src_channel, src_port, dst_channel, dst_port, signer}
-ibc_frontrun_counter{chain_id, src_channel, src_port, dst_channel, dst_port, signer, frontrunned_by}
+`ibc_effected_packets{chain_id, src_channel, src_port, dst_channel, dst_port, signer}`
+`ibc_uneffected_packets{chain_id, src_channel, src_port, dst_channel, dst_port, signer}`
+`ibc_frontrun_counter{chain_id, src_channel, src_port, dst_channel, dst_port, signer, frontrunned_by}`
