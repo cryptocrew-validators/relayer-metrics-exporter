@@ -4,7 +4,7 @@
   "description": "prometheus exporter for ibc relayer metrics",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node app.js --experimental-modules app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,8 +21,15 @@
     "axios": "^1.4.0",
     "cosmjs-types": "^0.7.2",
     "express": "^4.18.2",
+    "path": "^0.12.7",
     "prom-client": "^14.2.0",
+    "protobufjs": "^7.2.3",
+    "sqlite": "^4.2.0",
     "sqlite3": "^5.1.6",
     "ws": "^8.13.0"
+  },
+  "type": "module",
+  "devDependencies": {
+    "typescript": "^5.0.4"
   }
 }

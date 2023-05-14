@@ -1,4 +1,4 @@
-const { 
+import { 
   MsgRecvPacket,
   MsgAcknowledgement,
   MsgTimeout,
@@ -9,28 +9,28 @@ const {
   MsgChannelCloseInit,
   MsgChannelCloseConfirm,
   MsgTimeoutOnClose
-} = require('cosmjs-types/ibc/core/channel/v1/tx');
-const { 
+} from 'cosmjs-types/ibc/core/channel/v1/tx.js';
+import { 
   MsgConnectionOpenTry,
   MsgConnectionOpenInit,
   MsgConnectionOpenAck,
   MsgConnectionOpenConfirm
-} = require('cosmjs-types/ibc/core/connection/v1/tx');
-const { 
+} from 'cosmjs-types/ibc/core/connection/v1/tx.js';
+import { 
   MsgCreateClient,
   MsgUpdateClient,
   MsgUpgradeClient,
   MsgSubmitMisbehaviour
-} = require('cosmjs-types/ibc/core/client/v1/tx');
-const {
+} from 'cosmjs-types/ibc/core/client/v1/tx.js';
+import {
   MsgTransfer
-} = require('cosmjs-types/ibc/applications/transfer/v1/tx.js');
-const {
+} from 'cosmjs-types/ibc/applications/transfer/v1/tx.js';
+import {
   MsgPayPacketFee,
   MsgPayPacketFeeAsync,
   MsgRegisterCounterpartyPayee,
   MsgRegisterPayee
-} = require('cosmjs-types/ibc/applications/fee/v1/tx.js');
+} from 'cosmjs-types/ibc/applications/fee/v1/tx.js';
 
 function decodeMessage(msg) {
   msg.result = `Decoded message type: ${msg.typeUrl}`;
@@ -125,6 +125,4 @@ function decodeMessage(msg) {
   return msg;
 }
 
-module.exports = {
-  decodeMessage
-}
+export default decodeMessage;
