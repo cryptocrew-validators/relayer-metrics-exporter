@@ -1,12 +1,17 @@
-const axios = require('axios');
-const WebSocket = require('ws');
-const prometheus = require('prom-client');
-const express = require('express');
+import axios from 'axios';
+import WebSocket from 'ws';
+import prometheus from 'prom-client';
+import express from 'express';
 
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 const { Tx } = require('cosmjs-types/cosmos/tx/v1beta1/tx');
-const { decodeMessage } = require('./ibc_helper.js');
-const db = require('./db.js');
-const config = require('./config.js');
+
+// import { ValidatorSetChangePacketData } from "./dist/cosmos/interchain-security/proto/interchain-security/ccv/v1/ccv.js";
+
+import decodeMessage from './ibc_helper.js';
+import db from './db.js';
+import config from './config.js';
 
 const app = express();
 const port = config.port;
@@ -38,31 +43,41 @@ async function savePacket(msg) {
     msg.value.packet.destinationChannel,
     msg.value.packet.destinationPort,
     msg.value.packet.sequence.low,
+    msg.typeUrl, 
   ];
 
   const query = `
-    SELECT * FROM packets
+    SELECT packets.*, signers.signer as signer 
+    FROM packets 
+    LEFT JOIN signers ON packets.signer_id = signers.id
     WHERE source_channel = ? 
     AND source_port = ? 
     AND destination_channel = ? 
     AND destination_port = ? 
     AND sequence = ?
+    AND msg_type_url = ?
   `;
 
-  const existingPacket = await db.get(query, packetParams);
-  const originalSigner = existingPacket ? existingPacket.signer : msg.value.signer;
+  let existingPacket = await new Promise((resolve, reject) => {
+    db.get(query, packetParams, (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
 
   if (!existingPacket || !existingPacket.signer_id) {
     msg.effected = true;
+    msg.effectedSigner = msg.value.signer;
     effectedPackets.labels(
       msg.chainId,
       msg.value.packet.sourceChannel,
       msg.value.packet.sourcePort,
       msg.value.packet.destinationChannel,
       msg.value.packet.destinationPort,
-      msg.value.signer
+      msg.effectedSigner
     ).inc();
   } else {
+    console.log("Existing Packet:", existingPacket);
     msg.effected = false;
     msg.effectedSigner = existingPacket.signer;
     uneffectedPackets.labels(
@@ -80,7 +95,7 @@ async function savePacket(msg) {
       msg.value.packet.destinationChannel,
       msg.value.packet.destinationPort,
       msg.value.signer,
-      originalSigner
+      msg.effectedSigner
     ).inc();
   }
 
@@ -152,6 +167,7 @@ async function handleNewBlock(chain, height) {
         for (let msg of msgs) {
           if (msg.typeUrl.startsWith('/ibc')) {
             decodeMessage(msg);
+            
             msg.chainId = block.header.chain_id
             // Log decoded message
             if (msg.result.includes('Undecoded')) {
@@ -160,6 +176,7 @@ async function handleNewBlock(chain, height) {
               if (msg.relevant) {
                 try {
                   msg = await savePacket(msg);
+                  
                   const sourcePort = msg.value.packet.sourcePort;
                   const sourceChannel = msg.value.packet.sourceChannel;
                   const destinationPort = msg.value.packet.destinationPort;
@@ -168,8 +185,19 @@ async function handleNewBlock(chain, height) {
                   const signer = msg.value.signer;
                   const msgTypeUrl = msg.typeUrl;
                   const effected = msg.effected;
+                  const effectedSigner = msg.effectedSigner;
+
+                  let isValsetUpdate = false;
 
                   console.log(`${msg.chainId} | ${sourcePort}/${sourceChannel}: ${msgTypeUrl} (${sequence}) | ${signer} | ${effected}${effected ? '' : ' | ' + msg.effectedSigner}`);
+                  
+                  if (sourcePort == 'provider' && destinationPort == 'consumer') {
+                    isValsetUpdate = true;
+                    // let valsetUpdate = ValidatorSetChangePacketData.decode(msg.value.data);
+                    // console.log(msg)
+                  }
+                  
+                  
                 } catch (error) {
                   console.error(error);
                 }
@@ -234,6 +262,6 @@ app.listen(port, () => {
   console.log(`Prometheus metrics exposed at http://localhost:${port}/metrics`);
 });
 
-config.chains.forEach((chain) => {
+for (const chain of config.chains) {
   startBlockListener(chain);
-});
+}
