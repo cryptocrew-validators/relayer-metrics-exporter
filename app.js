@@ -77,7 +77,6 @@ async function savePacket(msg) {
       msg.effectedSigner
     ).inc();
   } else {
-    console.log("Existing Packet:", existingPacket);
     msg.effected = false;
     msg.effectedSigner = existingPacket.signer;
     uneffectedPackets.labels(
