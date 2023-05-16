@@ -1,23 +1,23 @@
 import sqlite3 from 'sqlite3';
 
-const db = new sqlite3.Database(':memory:', (err) => {
+const db = new sqlite3.Database('./data.db', (err) => {
   if (err) {
-    console.error('Error initializing in-memory SQLite database:', err.message);
+    console.error('Error initializing SQLite database:', err.message);
     process.exit(1);
   } else {
-    console.log('In-memory SQLite database initialized.');
+    console.log('SQLite database initialized.');
   }
 });
 
 db.serialize(() => {
   db.run(`
-    CREATE TABLE signers (
+    CREATE TABLE IF NOT EXISTS signers (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       signer TEXT UNIQUE
     )
   `);
   db.run(`
-    CREATE TABLE packets (
+    CREATE TABLE IF NOT EXISTS packets (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       chain_id TEXT,
       signer_id INTEGER,
