@@ -118,10 +118,11 @@ async function savePacket(msg) {
 
           // Save the packet
           db.run(
-            'INSERT INTO packets (chain_id, signer_id, sequence, source_channel, source_port, destination_channel, destination_port, msg_type_url, created_at, effected) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime("now"), ?)',
+            'INSERT INTO packets (chain_id, signer_id, memo, sequence, source_channel, source_port, destination_channel, destination_port, msg_type_url, created_at, effected) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime("now"), ?)',
             [
               msg.chainId,
               signerId, 
+              msg.memo,
               msg.value.packet.sequence.low, 
               msg.value.packet.sourceChannel, 
               msg.value.packet.sourcePort, 
@@ -168,6 +169,8 @@ async function handleNewBlock(chain, height) {
             decodeMessage(msg);
             
             msg.chainId = block.header.chain_id
+            msg.memo = transaction.body.memo;
+
             // Log decoded message
             if (msg.result.includes('Undecoded')) {
               console.warn(msg);

@@ -16,11 +16,20 @@ db.serialize(() => {
       signer TEXT UNIQUE
     )
   `);
+  // db.run(`
+  //   CREATE TABLE txs (
+  //     id INTEGER PRIMARY KEY AUTOINCREMENT,
+  //     height INTEGER,
+  //     hash TEXT UNIQUE,
+  //     memo TEXT
+  //   )
+  // `);
   db.run(`
     CREATE TABLE IF NOT EXISTS packets (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       chain_id TEXT,
       signer_id INTEGER,
+      memo TEXT,
       sequence INTEGER,
       source_channel TEXT,
       source_port TEXT,
