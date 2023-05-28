@@ -20,19 +20,19 @@ const port = config.port;
 const effectedPackets = new prometheus.Gauge({
   name: 'ibc_effected_packets',
   help: 'Counts the number of IBC packets that are affected',
-  labelNames: ['chain_id', 'src_channel', 'src_port', 'dst_channel', 'dst_port', 'signer'],
+  labelNames: ['chain_id', 'src_channel', 'src_port', 'dst_channel', 'dst_port', 'signer', 'memo'],
 });
 
 const uneffectedPackets = new prometheus.Gauge({
   name: 'ibc_uneffected_packets',
   help: 'Counts the number of IBC packets that are not affected',
-  labelNames: ['chain_id', 'src_channel', 'src_port', 'dst_channel', 'dst_port', 'signer'],
+  labelNames: ['chain_id', 'src_channel', 'src_port', 'dst_channel', 'dst_port', 'signer', 'memo'],
 });
 
 const frontRunCounter = new prometheus.Gauge({
   name: 'ibc_frontrun_counter',
   help: 'Counts the number of times a signer gets frontrun by the same original signer',
-  labelNames: ['chain_id', 'src_channel', 'src_port', 'dst_channel', 'dst_port', 'signer', 'frontrunned_by'],
+  labelNames: ['chain_id', 'src_channel', 'src_port', 'dst_channel', 'dst_port', 'signer', 'frontrunned_by', 'memo'],
 });
 
 // Save new packet and check if it already has been handled
@@ -74,7 +74,8 @@ async function savePacket(msg) {
       msg.value.packet.sourcePort,
       msg.value.packet.destinationChannel,
       msg.value.packet.destinationPort,
-      msg.effectedSigner
+      msg.effectedSigner,
+      msg.memo
     ).inc();
   } else {
     msg.effected = false;
@@ -85,7 +86,8 @@ async function savePacket(msg) {
       msg.value.packet.sourcePort,
       msg.value.packet.destinationChannel,
       msg.value.packet.destinationPort,
-      msg.value.signer
+      msg.value.signer,
+      msg.memo
     ).inc();
     frontRunCounter.labels(
       msg.chainId,
@@ -94,6 +96,7 @@ async function savePacket(msg) {
       msg.value.packet.destinationChannel,
       msg.value.packet.destinationPort,
       msg.value.signer,
+      msg.memo,
       msg.effectedSigner
     ).inc();
   }
